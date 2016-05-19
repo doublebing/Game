@@ -1,0 +1,104 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8"/>
+</head>
+<body onkeydown="getCommand()">
+    <h1>html5-经典的坦克大战</h1>
+    <p>w->上，d->左，s->下，a->右，j->发射子弹</p>
+	<!--画布标签，在这个区域可以绘制图形-->
+	<canvas id="tankMap" width="400px" height="300px" style="background:black">
+	</canvas>   
+    <script type="text/javascript" src="tankGame.js"></script>
+	<script>
+    //1、得到画布
+	 var canvas1=document.getElementById("tankMap");
+	//2、得到上下文环境，通过cxt对象来绘制图形，它提供了很多绘制图形的方法
+	var cxt=canvas1.getContext("2d");
+
+    //为了编程方便，我们定义两个颜色数组
+    var heroColor=new Array("#BA9658","#FEF26E");
+    var enemyColor=new Array("#00A2B5","#00FEFE");
+  
+    //定义我的Tank
+    var hero=new Hero(140,140,0,2,heroColor);
+    //定义子弹数组
+    var heroBullets=new Array();
+
+
+    //定义敌人的坦克,定3个，将来可以做成变量
+    //0->上，1->右，2->下，3->左
+    var enemyTanks=new Array();
+    //定义敌人子弹的数组
+    var enemyBullets=new Array();
+
+    for(var i=0;i<3;i++){
+        var enemyTank=new EnemyTank((i+1)*50,0,2,2,enemyColor);
+        enemyTanks[i]=enemyTank;
+        //启动这个敌人的坦克
+        window.setInterval("enemyTanks["+i+"].run()",50);
+        var eb=new Bullet(enemyTanks[i].x+9,enemyTanks[i].y+30,enemyTanks[i].direct,1.5,"enemy",enemyTanks[i]);
+        enemyBullets[i]=eb;
+        //启动该子弹
+        var ebtimer=window.setInterval("enemyBullets["+i+"].run()",50);
+        enemyBullets[i].timer=ebtimer;
+    }
+
+    //定义一个炸弹数组（可以存放很多炸弹）
+    var bombs=new Array();
+
+    //先调用一次,第一次绘制画布
+    flashTankMap();
+    
+    //专门写一个函数，用于定时刷新画布（作战区:自己的坦克，敌人坦克，子弹，炸弹，障碍物……）
+    function flashTankMap(){
+
+        //清理画布
+        cxt.clearRect(0,0,400,300);         
+        //重绘
+        //我的坦克
+        drawTank(hero);
+        //画出自己的子弹
+        //子弹飞的效果怎么出现？【首先每隔一段时间去刷新作战区，如果在刷新的时候，子弹坐标变换了，给人的感觉就是子弹在飞】
+        drawHeroBullet();
+        //敌人的坦克
+        //判断一下敌人的坦克是否被击中
+        isHitEnemyTank();
+        drawEnemyBomb();
+        drawEnemyBullet();
+        for(var i=0;i<3;i++){
+            drawTank(enemyTanks[i]);
+        }
+
+    }    
+
+    //接受用户按键 w,d,s,a
+    function getCommand(){
+        var code=event.keyCode;
+        switch(code){
+            case 87://'w' 上
+                hero.moveUp();
+                break;
+            case 68://'d' 右
+                hero.moveRight();
+                break;
+            case 83://'s' 下
+                hero.moveDown();
+                break;
+            case 65://'a' 左
+                hero.moveLeft();
+                break;
+            case 74:
+                hero.shotEnemy();
+                break;
+        }
+        //触发这个函数flashTankMap()
+        flashTankMap();        
+    }
+
+    //每隔100毫秒去刷新一次作战区
+    window.setInterval("flashTankMap()",100);
+
+	</script>
+</body>
+</html>
